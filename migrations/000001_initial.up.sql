@@ -16,15 +16,20 @@ CREATE TABLE users(
 );
 CREATE INDEX ON users(email);
 
--- CREATE TABLE IF NOT EXISTS jobs(
---     id UUID PRIMARY KEY,
---     company_name VARCHAR(256) NOT NULL,
---     description TEXT NOT NULL,
---     status BOOLEAN NOT NULL,
---     created_at TIMESTAMPTZ NOT NULL,
---     updated_at TIMESTAMPTZ
--- );
--- CREATE INDEX ON job(company_name);
+CREATE TYPE enum_job_status AS ENUM (
+    'hiring',
+    'not hiring'
+);
+
+CREATE TABLE IF NOT EXISTS jobs(
+    id UUID PRIMARY KEY,
+    company_name VARCHAR(256) NOT NULL,
+    description TEXT NOT NULL,
+    status VARCHAR(16) NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL,
+    updated_at TIMESTAMPTZ
+);
+CREATE INDEX ON jobs(company_name);
 
 -- CREATE TYPE enum_job_application_status AS ENUM (
 --     'pending',

@@ -8,4 +8,6 @@ var (
 	ErrPasswordRequired    = errors.New("password is required")
 	ErrTypeRequired        = errors.New("type is required")
 	ErrDescriptionRequired = errors.New("description is required")
+	ErrCompanyNameRequired = errors.New("company name is required")
+	ErrInvalidType         = errors.New("invalid user type")
 )

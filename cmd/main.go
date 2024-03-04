@@ -3,10 +3,9 @@ package main
 import (
 	"context"
 
-	"github.com/christianchrisjo/hiring/internal/models"
+	http "github.com/christianchrisjo/hiring/cmd/http"
 	"github.com/christianchrisjo/hiring/internal/postgres"
 	"github.com/christianchrisjo/hiring/internal/usecase"
-	"github.com/google/uuid"
 )
 
 func main() {
@@ -22,18 +21,8 @@ func main() {
 	}
 
 	usecase := usecase.New(repo)
-	_, err = usecase.CreateUser(models.CreateUserRequest{
-		ID:          uuid.New(),
-		Email:       "christian@gmail.com",
-		Password:    "password",
-		Type:        models.Employee,
-		Description: "user description",
-	})
-	if err != nil {
-		panic(err)
-	}
-
 	defer db.Close()
 
-	return
+	handler := http.NewHandlers(usecase)
+	http.HandleRequests(handler)
 }

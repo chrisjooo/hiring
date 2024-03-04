@@ -43,3 +43,22 @@ func New(db *sql.DB) (*Postgres, error) {
 		db: db,
 	}, nil
 }
+
+// RunQuery executes query, then calls f on each row.
+func RunQuery(db *sql.DB, query string, f func(*sql.Rows) error, params ...interface{}) error {
+	rows, err := db.Query(query, params...)
+	if err != nil {
+		return err
+	}
+	return processRows(rows, f)
+}
+
+func processRows(rows *sql.Rows, f func(*sql.Rows) error) error {
+	defer rows.Close()
+	for rows.Next() {
+		if err := f(rows); err != nil {
+			return err
+		}
+	}
+	return rows.Err()
+}
