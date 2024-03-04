@@ -38,7 +38,7 @@ func HandleRequests(handler *Handlers) {
 
 	// user endpoints
 	myRouter.HandleFunc("/user/{email}", handler.userHandler.getUserByEmail).Methods("GET")
-	myRouter.HandleFunc("/user/create", handler.userHandler.createUser).Methods("POST")
+	myRouter.HandleFunc("/user", handler.userHandler.createUser).Methods("POST")
 	myRouter.HandleFunc("/user/{id}", handler.userHandler.updateUser).Methods("PUT")
 
 	// job endpoints
@@ -47,6 +47,11 @@ func HandleRequests(handler *Handlers) {
 	myRouter.HandleFunc("/job", handler.jobHandler.createJob).Methods("POST")
 	myRouter.HandleFunc("/job/{id}", handler.jobHandler.updateJob).Methods("PUT")
 	myRouter.HandleFunc("/job/{id}", handler.jobHandler.deleteJob).Methods("DELETE")
+
+	// job application endpoints
+	myRouter.HandleFunc("/job/application/", handler.jobApplicationHandler.getJobApplication).Methods("GET")
+	myRouter.HandleFunc("/job/application/", handler.jobApplicationHandler.createJobApplication).Methods("POST")
+	myRouter.HandleFunc("/job/application/{id}", handler.jobApplicationHandler.updateJobApplication).Methods("PUT")
 
 	// CORS
 	headersOk := handlers.AllowedHeaders([]string{"X-Requested-With"})
@@ -57,13 +62,15 @@ func HandleRequests(handler *Handlers) {
 }
 
 type Handlers struct {
-	userHandler *UserHandler
-	jobHandler  *JobHandler
+	userHandler           *UserHandler
+	jobHandler            *JobHandler
+	jobApplicationHandler *JobApplicationHandler
 }
 
 func NewHandlers(uc *usecase.Usecase) *Handlers {
 	return &Handlers{
-		userHandler: NewUserHandler(uc),
-		jobHandler:  NewJobHandler(uc),
+		userHandler:           NewUserHandler(uc),
+		jobHandler:            NewJobHandler(uc),
+		jobApplicationHandler: NewJobApplicationHandler(uc),
 	}
 }

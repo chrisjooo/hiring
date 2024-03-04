@@ -21,6 +21,7 @@ type User struct {
 	Password    string    `json:"password"`
 	Type        UserType  `json:"user_type"`
 	Description string    `json:"description"`
+	Name        string    `json:"name"`
 	CreatedAt   time.Time `json:"created_at"`
 	UpdatedAt   time.Time `json:"updated_at"`
 }
@@ -31,6 +32,7 @@ type CreateUserRequest struct {
 	Password    string    `json:"password"`
 	Type        UserType  `json:"type"`
 	Description string    `json:"description"`
+	Name        string    `json:"name"`
 }
 
 func (req *CreateUserRequest) Validate() error {
@@ -46,6 +48,9 @@ func (req *CreateUserRequest) Validate() error {
 	if req.Description == "" {
 		return ErrDescriptionRequired
 	}
+	if req.Name == "" {
+		return ErrNameRequired
+	}
 
 	hasher := sha256.New().Sum([]byte(req.Password))
 	req.Password = hex.EncodeToString(hasher)
@@ -60,14 +65,19 @@ func (req *CreateUserRequest) Validate() error {
 type UpdateUserRequest struct {
 	UserID      uuid.UUID `json:"user_id"`
 	Description string    `json:"description"`
+	Name        string    `json:"name"`
 }
 
-func (req *UpdateUserRequest) Validate() error {
+func (req *UpdateUserRequest) Validate(existing User) error {
 	if req.UserID == uuid.Nil {
-		return ErrIDRequired
+		return ErrUserIDRequired
 	}
 	if req.Description == "" {
-		return ErrDescriptionRequired
+		req.Description = existing.Description
 	}
+	if req.Name == "" {
+		req.Name = existing.Name
+	}
+
 	return nil
 }

@@ -11,6 +11,7 @@ CREATE TABLE users(
     password VARCHAR(255) NOT NULL,
     type enum_user_type NOT NULL,
     description TEXT NOT NULL,
+    name VARCHAR(255) NOT NULL, -- company name for employer, full name for employee
     created_at TIMESTAMPTZ NOT NULL,
     updated_at TIMESTAMPTZ
 );
@@ -31,21 +32,21 @@ CREATE TABLE IF NOT EXISTS jobs(
 );
 CREATE INDEX ON jobs(company_name);
 
--- CREATE TYPE enum_job_application_status AS ENUM (
---     'pending',
---     'interview',
---     'accepted',
---     'rejected'
--- );
+CREATE TYPE enum_job_application_status AS ENUM (
+    'pending',
+    'interview',
+    'accepted',
+    'rejected'
+);
 
--- CREATE TABLE IF NOT EXISTS job_applications(
---     id UUID PRIMARY KEY,
---     user_id UUID NOT NULL,
---     job_id UUID NOT NULL,
---     status enum_job_application_status NOT NULL DEFAULT 'pending',
---     created_at TIMESTAMPTZ NOT NULL,
---     updated_at TIMESTAMPTZ,
---     UNIQUE (user_id, job_id)
--- );
--- CREATE INDEX on job_application(user_id);
--- CREATE INDEX on job_application(job_id);
+CREATE TABLE IF NOT EXISTS job_applications(
+    id UUID PRIMARY KEY,
+    user_id UUID NOT NULL,
+    job_id UUID NOT NULL,
+    status enum_job_application_status NOT NULL DEFAULT 'pending',
+    created_at TIMESTAMPTZ NOT NULL,
+    updated_at TIMESTAMPTZ,
+    UNIQUE (user_id, job_id)
+);
+CREATE INDEX on job_applications(user_id);
+CREATE INDEX on job_applications(job_id);

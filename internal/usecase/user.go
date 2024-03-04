@@ -19,6 +19,7 @@ func (u *Usecase) CreateUser(req models.CreateUserRequest) (models.User, error) 
 		Password:    req.Password,
 		Type:        req.Type,
 		Description: req.Description,
+		Name:        req.Name,
 		CreatedAt:   time.Now(),
 	})
 	if err != nil {
@@ -41,12 +42,22 @@ func (u *Usecase) GetUserByEmail(email string) (models.User, error) {
 }
 
 func (u *Usecase) UpdateUser(req models.UpdateUserRequest) (models.User, error) {
-	err := req.Validate()
+	existing, err := u.postgres.GetUserByID(req.UserID.String())
 	if err != nil {
 		return models.User{}, err
 	}
 
-	user, err := u.postgres.UpdateUser(req)
+	err = req.Validate(existing)
+	if err != nil {
+		return models.User{}, err
+	}
+
+	// update data
+	existing.Description = req.Description
+	existing.Name = req.Name
+	existing.UpdatedAt = time.Now()
+
+	user, err := u.postgres.UpdateUser(existing)
 	if err != nil {
 		return models.User{}, err
 	}

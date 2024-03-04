@@ -7,9 +7,9 @@ import (
 )
 
 func (p *Postgres) CreateUser(req models.User) (models.User, error) {
-	query := `INSERT INTO users (id, email, password, type, description, created_at) VALUES ($1, $2, $3, $4, $5, $6)`
+	query := `INSERT INTO users (id, email, password, type, description, name, created_at) VALUES ($1, $2, $3, $4, $5, $6, $7)`
 
-	_, err := p.db.Exec(query, req.UserID, req.Email, req.Password, req.Type, req.Description, req.CreatedAt)
+	_, err := p.db.Exec(query, req.UserID, req.Email, req.Password, req.Type, req.Description, req.Name, req.CreatedAt)
 	if err != nil {
 		return models.User{}, err
 	}
@@ -17,7 +17,7 @@ func (p *Postgres) CreateUser(req models.User) (models.User, error) {
 }
 
 func (p *Postgres) GetUserByEmail(email string) (models.User, error) {
-	query := `SELECT id, email, type, description, created_at, updated_at FROM users WHERE email = $1`
+	query := `SELECT id, email, type, description, name, created_at, updated_at FROM users WHERE email = $1`
 	user := models.User{}
 	row := p.db.QueryRow(query, email)
 
@@ -28,6 +28,7 @@ func (p *Postgres) GetUserByEmail(email string) (models.User, error) {
 		&user.Email,
 		&user.Type,
 		&user.Description,
+		&user.Name,
 		&user.CreatedAt,
 		&updatedAt)
 	if err != nil {
@@ -37,19 +38,19 @@ func (p *Postgres) GetUserByEmail(email string) (models.User, error) {
 	return user, nil
 }
 
-func (p *Postgres) UpdateUser(req models.UpdateUserRequest) (models.User, error) {
-	query := `UPDATE users SET description = $1, updated_at = time.Now() WHERE id = $2 
-	RETURNING id, email, type, description, created_at, updated_at`
+func (p *Postgres) GetUserByID(userID string) (models.User, error) {
+	query := `SELECT id, email, type, description, name, created_at, updated_at FROM users WHERE id = $1`
+	user := models.User{}
+	row := p.db.QueryRow(query, userID)
 
-	row := p.db.QueryRow(query, req.Description, req.UserID)
-
-	var user models.User
 	var updatedAt sql.NullTime
+
 	err := row.Scan(
 		&user.UserID,
 		&user.Email,
 		&user.Type,
 		&user.Description,
+		&user.Name,
 		&user.CreatedAt,
 		&updatedAt)
 	if err != nil {
@@ -57,4 +58,13 @@ func (p *Postgres) UpdateUser(req models.UpdateUserRequest) (models.User, error)
 	}
 	user.UpdatedAt = updatedAt.Time
 	return user, nil
+}
+
+func (p *Postgres) UpdateUser(req models.User) (models.User, error) {
+	query := `UPDATE users SET description = $1, name = $2, updated_at = $3 WHERE id = $4`
+	_, err := p.db.Exec(query, req.Description, req.Name, req.UpdatedAt, req.UserID)
+	if err != nil {
+		return models.User{}, err
+	}
+	return req, nil
 }

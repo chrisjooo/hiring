@@ -47,7 +47,7 @@ type UpdateJobRequest struct {
 
 func (req *UpdateJobRequest) Validate(existing Job) error {
 	if req.ID == uuid.Nil {
-		return ErrIDRequired
+		return ErrJobIDRequired
 	}
 	if req.CompanyName == "" {
 		req.CompanyName = existing.CompanyName
