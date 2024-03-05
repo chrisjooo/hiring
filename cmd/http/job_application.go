@@ -30,6 +30,24 @@ func (u *JobApplicationHandler) createJobApplication(w http.ResponseWriter, r *h
 		return
 	}
 
+	claimToken, err := extractBearerToken(r)
+	if err != nil {
+		WriteWithResponse(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	// get user id from token
+	user, err := u.usecase.GetUserByID(claimToken.UserID.String())
+	if err != nil {
+		WriteWithResponse(w, http.StatusBadRequest, "invalid token credential")
+		return
+	}
+
+	if user.UserID.String() != createRequest.UserID.String() {
+		WriteWithResponse(w, http.StatusBadRequest, "unable to create job application for other user")
+		return
+	}
+
 	job, err := u.usecase.CreateJobApplication(createRequest)
 	if err != nil {
 		WriteWithResponse(w, http.StatusBadRequest, err.Error())
@@ -38,43 +56,114 @@ func (u *JobApplicationHandler) createJobApplication(w http.ResponseWriter, r *h
 	WriteWithResponse(w, http.StatusCreated, job)
 }
 
-func (u *JobApplicationHandler) getJobApplication(w http.ResponseWriter, r *http.Request) {
-	userID := r.URL.Query().Get("user_id")
-	jobID := r.URL.Query().Get("job_id")
-	jobApplicationID := r.URL.Query().Get("id")
+func (u *JobApplicationHandler) getJobApplicationByID(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	id := vars["id"]
 
-	if jobApplicationID != "" {
-		jobApplication, err := u.usecase.GetJobApplicationByID(jobApplicationID)
+	jobApplication, err := u.usecase.GetJobApplicationByID(id)
+	if err != nil {
+		WriteWithResponse(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	claimToken, err := extractBearerToken(r)
+	if err != nil {
+		WriteWithResponse(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	if claimToken.Type == string(models.UserTypeEmployer) {
+		user, err := u.usecase.GetUserByID(claimToken.UserID.String())
 		if err != nil {
-			WriteWithResponse(w, http.StatusBadRequest, err.Error())
+			WriteWithResponse(w, http.StatusBadRequest, "invalid token credential")
 			return
 		}
-		WriteWithResponse(w, http.StatusOK, jobApplication)
-	}
-	if userID != "" && jobID != "" {
-		jobApplication, err := u.usecase.GetJobApplicationByJobIDAndUserID(jobID, userID)
+		job, err := u.usecase.GetJobByID(jobApplication.JobID.String())
 		if err != nil {
-			WriteWithResponse(w, http.StatusBadRequest, err.Error())
+			WriteWithResponse(w, http.StatusBadRequest, "invalid job id")
 			return
 		}
-		WriteWithResponse(w, http.StatusOK, jobApplication)
-	}
-	if userID != "" {
-		jobApplications, err := u.usecase.GetJobApplicationByUserID(userID)
-		if err != nil {
-			WriteWithResponse(w, http.StatusBadRequest, err.Error())
+		if job.CompanyName != user.Name {
+			WriteWithResponse(w, http.StatusBadRequest, "unable to see job application from other company")
 			return
 		}
-		WriteWithResponse(w, http.StatusOK, jobApplications)
 	}
-	if jobID != "" {
-		jobApplications, err := u.usecase.GetJobApplicationsByJobID(jobID)
+	if claimToken.Type == string(models.UserTypeEmployee) {
+		user, err := u.usecase.GetUserByID(claimToken.UserID.String())
 		if err != nil {
-			WriteWithResponse(w, http.StatusBadRequest, err.Error())
+			WriteWithResponse(w, http.StatusBadRequest, "invalid token credential")
 			return
 		}
-		WriteWithResponse(w, http.StatusOK, jobApplications)
+		if user.UserID.String() != jobApplication.UserID.String() {
+			WriteWithResponse(w, http.StatusBadRequest, "unable to see other user job application")
+			return
+		}
 	}
+
+	WriteWithResponse(w, http.StatusOK, jobApplication)
+}
+
+func (u *JobApplicationHandler) getJobApplicationByUserID(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	id := vars["id"]
+
+	claimToken, err := extractBearerToken(r)
+	if err != nil {
+		WriteWithResponse(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	// get user id from token
+	user, err := u.usecase.GetUserByID(claimToken.UserID.String())
+	if err != nil {
+		WriteWithResponse(w, http.StatusBadRequest, "invalid token credential")
+		return
+	}
+
+	if user.UserID.String() != id {
+		WriteWithResponse(w, http.StatusBadRequest, "unable to see other user job application")
+		return
+	}
+
+	jobApplications, err := u.usecase.GetJobApplicationByUserID(id)
+	if err != nil {
+		WriteWithResponse(w, http.StatusBadRequest, err.Error())
+		return
+	}
+	WriteWithResponse(w, http.StatusOK, jobApplications)
+}
+
+func (u *JobApplicationHandler) getJobApplicationByJobID(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	id := vars["id"]
+
+	claimToken, err := extractBearerToken(r)
+	if err != nil {
+		WriteWithResponse(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	user, err := u.usecase.GetUserByID(claimToken.UserID.String())
+	if err != nil {
+		WriteWithResponse(w, http.StatusBadRequest, "invalid token credential")
+		return
+	}
+	job, err := u.usecase.GetJobByID(id)
+	if err != nil {
+		WriteWithResponse(w, http.StatusBadRequest, "invalid job id")
+		return
+	}
+	if job.CompanyName != user.Name {
+		WriteWithResponse(w, http.StatusBadRequest, "unable to see job application from other company")
+		return
+	}
+
+	jobApplications, err := u.usecase.GetJobApplicationsByJobID(id)
+	if err != nil {
+		WriteWithResponse(w, http.StatusBadRequest, err.Error())
+		return
+	}
+	WriteWithResponse(w, http.StatusOK, jobApplications)
 }
 
 func (u *JobApplicationHandler) updateJobApplication(w http.ResponseWriter, r *http.Request) {
@@ -93,7 +182,34 @@ func (u *JobApplicationHandler) updateJobApplication(w http.ResponseWriter, r *h
 		WriteWithResponse(w, http.StatusBadRequest, "Invalid job application id")
 		return
 	}
-	jobApplication, err := u.usecase.UpdateJobApplication(updateRequest)
+
+	claimToken, err := extractBearerToken(r)
+	if err != nil {
+		WriteWithResponse(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	user, err := u.usecase.GetUserByID(claimToken.UserID.String())
+	if err != nil {
+		WriteWithResponse(w, http.StatusBadRequest, "invalid token credential")
+		return
+	}
+	jobApplication, err := u.usecase.GetJobApplicationByID(id)
+	if err != nil {
+		WriteWithResponse(w, http.StatusBadRequest, "invalid job application id")
+		return
+	}
+	job, err := u.usecase.GetJobByID(jobApplication.JobID.String())
+	if err != nil {
+		WriteWithResponse(w, http.StatusBadRequest, "invalid job id")
+		return
+	}
+	if job.CompanyName != user.Name {
+		WriteWithResponse(w, http.StatusBadRequest, "unable to see job application from other company")
+		return
+	}
+
+	jobApplication, err = u.usecase.UpdateJobApplication(updateRequest)
 	if err != nil {
 		WriteWithResponse(w, http.StatusBadRequest, err.Error())
 		return

@@ -54,11 +54,22 @@ func (u *UserHandler) updateUser(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id := vars["id"]
 
+	claimToken, err := extractBearerToken(r)
+	if err != nil {
+		WriteWithResponse(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
 	updateRequest := models.UpdateUserRequest{}
 	reqBody, _ := io.ReadAll(r.Body)
-	err := json.Unmarshal(reqBody, &updateRequest)
+	err = json.Unmarshal(reqBody, &updateRequest)
 	if err != nil {
 		WriteWithResponse(w, http.StatusBadRequest, "Invalid update user request")
+		return
+	}
+
+	if claimToken.UserID.String() != updateRequest.UserID.String() {
+		WriteWithResponse(w, http.StatusUnauthorized, "unauthorized")
 		return
 	}
 
@@ -74,4 +85,28 @@ func (u *UserHandler) updateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	WriteWithResponse(w, http.StatusOK, user)
+}
+
+func (u *UserHandler) signInWithEmail(w http.ResponseWriter, r *http.Request) {
+	signInRequest := models.SignInByEmailRequest{}
+	reqBody, _ := io.ReadAll(r.Body)
+	err := json.Unmarshal(reqBody, &signInRequest)
+	if err != nil {
+		WriteWithResponse(w, http.StatusBadRequest, "Invalid create user request")
+		return
+	}
+
+	err = signInRequest.Validate()
+	if err != nil {
+		WriteWithResponse(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	token, err := u.usecase.SignInByEmail(signInRequest.Email, signInRequest.Password)
+	if err != nil {
+		WriteWithResponse(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	WriteWithResponse(w, http.StatusOK, token)
 }

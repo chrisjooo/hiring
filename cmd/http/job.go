@@ -30,6 +30,24 @@ func (u *JobHandler) createJob(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	claimToken, err := extractBearerToken(r)
+	if err != nil {
+		WriteWithResponse(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	// get user id from token
+	user, err := u.usecase.GetUserByID(claimToken.UserID.String())
+	if err != nil {
+		WriteWithResponse(w, http.StatusBadRequest, "invalid token credential")
+		return
+	}
+
+	if user.Name != createRequest.CompanyName {
+		WriteWithResponse(w, http.StatusBadRequest, "unable to create job for other company")
+		return
+	}
+
 	job, err := u.usecase.CreateJob(createRequest)
 	if err != nil {
 		WriteWithResponse(w, http.StatusBadRequest, err.Error())
@@ -75,6 +93,24 @@ func (u *JobHandler) updateJob(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	claimToken, err := extractBearerToken(r)
+	if err != nil {
+		WriteWithResponse(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	// get user id from token
+	user, err := u.usecase.GetUserByID(claimToken.UserID.String())
+	if err != nil {
+		WriteWithResponse(w, http.StatusBadRequest, "invalid token credential")
+		return
+	}
+
+	if user.UserID.String() != updateRequest.ID.String() {
+		WriteWithResponse(w, http.StatusBadRequest, "unable to update other company job")
+		return
+	}
+
 	job, err := u.usecase.UpdateJob(updateRequest)
 	if err != nil {
 		WriteWithResponse(w, http.StatusBadRequest, err.Error())
@@ -86,7 +122,26 @@ func (u *JobHandler) updateJob(w http.ResponseWriter, r *http.Request) {
 func (u *JobHandler) deleteJob(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id := vars["id"]
-	err := u.usecase.DeleteJob(id)
+
+	claimToken, err := extractBearerToken(r)
+	if err != nil {
+		WriteWithResponse(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	// get user id from token
+	user, err := u.usecase.GetUserByID(claimToken.UserID.String())
+	if err != nil {
+		WriteWithResponse(w, http.StatusBadRequest, "invalid token credential")
+		return
+	}
+
+	if user.UserID.String() != id {
+		WriteWithResponse(w, http.StatusBadRequest, "unable to delete other company job")
+		return
+	}
+
+	err = u.usecase.DeleteJob(id)
 	if err != nil {
 		WriteWithResponse(w, http.StatusBadRequest, err.Error())
 		return

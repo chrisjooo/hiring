@@ -68,3 +68,14 @@ func (p *Postgres) UpdateUser(req models.User) (models.User, error) {
 	}
 	return req, nil
 }
+
+func (p *Postgres) CheckUserCredsByEmail(email, password string) (bool, error) {
+	query := `SELECT case when password = $1 then 'TRUE' else 'FALSE' end FROM users WHERE email = $2`
+
+	var match bool
+	err := p.db.QueryRow(query, password, email).Scan(&match)
+	if err != nil {
+		return false, err
+	}
+	return match, nil
+}

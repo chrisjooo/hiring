@@ -15,4 +15,6 @@ var (
 	ErrJobApplicationStatusRequired = errors.New("job application status is required")
 	ErrInvalidJobApplicationStatus  = errors.New("invalid job application status")
 	ErrNameRequired                 = errors.New("name is required")
+	ErrInvalidCreds                 = errors.New("invalid credentials")
+	ErrTokenExpired                 = errors.New("token expired")
 )
