@@ -24,7 +24,8 @@ CREATE TYPE enum_job_status AS ENUM (
 
 CREATE TABLE IF NOT EXISTS jobs(
     id UUID PRIMARY KEY,
-    company_name VARCHAR(256) NOT NULL,
+    company_name VARCHAR(255) NOT NULL,
+    title VARCHAR(255) NOT NULL,
     description TEXT NOT NULL,
     status VARCHAR(16) NOT NULL,
     created_at TIMESTAMPTZ NOT NULL,

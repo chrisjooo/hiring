@@ -17,4 +17,5 @@ var (
 	ErrNameRequired                 = errors.New("name is required")
 	ErrInvalidCreds                 = errors.New("invalid credentials")
 	ErrTokenExpired                 = errors.New("token expired")
+	ErrTitleRequired                = errors.New("title is required")
 )

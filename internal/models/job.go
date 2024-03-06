@@ -16,6 +16,7 @@ const (
 type Job struct {
 	ID          uuid.UUID `json:"job_id"`
 	CompanyName string    `json:"company_name"`
+	Title       string    `json:"title"`
 	Description string    `json:"description"`
 	Status      JobStatus `json:"status"`
 	CreatedAt   time.Time `json:"created_at"`
@@ -23,14 +24,17 @@ type Job struct {
 }
 
 type CreateJobRequest struct {
-	ID          uuid.UUID `json:"job_id"`
-	CompanyName string    `json:"company_name"`
-	Description string    `json:"description"`
+	CompanyName string `json:"company_name"`
+	Title       string `json:"title"`
+	Description string `json:"description"`
 }
 
 func (req *CreateJobRequest) Validate() error {
 	if req.CompanyName == "" {
 		return ErrCompanyNameRequired
+	}
+	if req.Title == "" {
+		return ErrTitleRequired
 	}
 	if req.Description == "" {
 		return ErrDescriptionRequired
@@ -40,7 +44,7 @@ func (req *CreateJobRequest) Validate() error {
 
 type UpdateJobRequest struct {
 	ID          uuid.UUID `json:"job_id"`
-	CompanyName string    `json:"company_name"`
+	Title       string    `json:"title"`
 	Description string    `json:"description"`
 	Status      JobStatus `json:"status"`
 }
@@ -49,8 +53,8 @@ func (req *UpdateJobRequest) Validate(existing Job) error {
 	if req.ID == uuid.Nil {
 		return ErrJobIDRequired
 	}
-	if req.CompanyName == "" {
-		req.CompanyName = existing.CompanyName
+	if req.Title == "" {
+		req.Title = existing.Title
 	}
 	if req.Description == "" {
 		req.Description = existing.Description

@@ -8,9 +8,15 @@ import (
 )
 
 func (u *Usecase) CreateJob(req models.CreateJobRequest) (models.Job, error) {
+	err := req.Validate()
+	if err != nil {
+		return models.Job{}, err
+	}
+
 	job, err := u.postgres.CreateJob(models.Job{
 		ID:          uuid.New(),
 		CompanyName: req.CompanyName,
+		Title:       req.Title,
 		Description: req.Description,
 		Status:      models.JobStatusHiring,
 		CreatedAt:   time.Now(),
@@ -53,7 +59,6 @@ func (u *Usecase) UpdateJob(req models.UpdateJobRequest) (models.Job, error) {
 
 	job, err := u.postgres.UpdateJob(models.Job{
 		ID:          req.ID,
-		CompanyName: req.CompanyName,
 		Description: req.Description,
 		Status:      req.Status,
 		UpdatedAt:   time.Now(),

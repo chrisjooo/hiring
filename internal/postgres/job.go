@@ -7,9 +7,9 @@ import (
 )
 
 func (p *Postgres) CreateJob(req models.Job) (models.Job, error) {
-	query := `INSERT INTO jobs (id, company_name, description, status, created_at) VALUES ($1, $2, $3, $4, $5)`
+	query := `INSERT INTO jobs (id, company_name, title, description, status, created_at) VALUES ($1, $2, $3, $4, $5, $6)`
 
-	_, err := p.db.Exec(query, req.ID, req.CompanyName, req.Description, req.Status, req.CreatedAt)
+	_, err := p.db.Exec(query, req.ID, req.CompanyName, req.Title, req.Description, req.Status, req.CreatedAt)
 	if err != nil {
 		return models.Job{}, err
 	}
@@ -17,7 +17,7 @@ func (p *Postgres) CreateJob(req models.Job) (models.Job, error) {
 }
 
 func (p *Postgres) GetJobByID(id string) (models.Job, error) {
-	query := `SELECT id, company_name, description, status, created_at, updated_at FROM jobs WHERE id = $1`
+	query := `SELECT id, company_name, title, description, status, created_at, updated_at FROM jobs WHERE id = $1`
 	job := models.Job{}
 	row := p.db.QueryRow(query, id)
 
@@ -25,6 +25,7 @@ func (p *Postgres) GetJobByID(id string) (models.Job, error) {
 	err := row.Scan(
 		&job.ID,
 		&job.CompanyName,
+		&job.Title,
 		&job.Description,
 		&job.Status,
 		&job.CreatedAt,
@@ -37,7 +38,7 @@ func (p *Postgres) GetJobByID(id string) (models.Job, error) {
 }
 
 func (p *Postgres) GetAllJobs() ([]models.Job, error) {
-	query := `SELECT id, company_name, description, status, created_at, updated_at FROM jobs`
+	query := `SELECT id, company_name, title, description, status, created_at, updated_at FROM jobs`
 	jobs := []models.Job{}
 
 	rows, err := p.db.Query(query)
@@ -52,6 +53,7 @@ func (p *Postgres) GetAllJobs() ([]models.Job, error) {
 		if err := rows.Scan(
 			&job.ID,
 			&job.CompanyName,
+			&job.Title,
 			&job.Description,
 			&job.Status,
 			&job.CreatedAt,
@@ -65,8 +67,8 @@ func (p *Postgres) GetAllJobs() ([]models.Job, error) {
 }
 
 func (p *Postgres) UpdateJob(req models.Job) (models.Job, error) {
-	query := `UPDATE jobs SET company_name = $1, description = $2, status = $3, updated_at = $4 WHERE id = $5`
-	_, err := p.db.Exec(query, req.CompanyName, req.Description, req.Status, req.UpdatedAt, req.ID)
+	query := `UPDATE jobs SET title = $1, description = $2, status = $3, updated_at = $4 WHERE id = $5`
+	_, err := p.db.Exec(query, req.Title, req.Description, req.Status, req.UpdatedAt, req.ID)
 	if err != nil {
 		return models.Job{}, err
 	}
