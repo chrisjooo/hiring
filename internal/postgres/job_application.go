@@ -121,3 +121,12 @@ func (p *Postgres) UpdateJobApplication(req models.JobApplication) (models.JobAp
 	}
 	return req, nil
 }
+
+func deleteJobApplicationByJobID(db *sql.Tx, jobID string) error {
+	query := `DELETE FROM job_applications WHERE job_id = $1`
+	_, err := db.Exec(query, jobID)
+	if err != nil {
+		return err
+	}
+	return nil
+}

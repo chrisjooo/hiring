@@ -105,13 +105,18 @@ func (u *JobHandler) updateJob(w http.ResponseWriter, r *http.Request) {
 		WriteWithResponse(w, http.StatusBadRequest, "invalid token credential")
 		return
 	}
+	job, err := u.usecase.GetJobByID(id)
+	if err != nil {
+		WriteWithResponse(w, http.StatusBadRequest, "invalid job id")
+		return
+	}
 
-	if user.UserID.String() != updateRequest.ID.String() {
+	if user.Name != job.CompanyName {
 		WriteWithResponse(w, http.StatusBadRequest, "unable to update other company job")
 		return
 	}
 
-	job, err := u.usecase.UpdateJob(updateRequest)
+	job, err = u.usecase.UpdateJob(updateRequest)
 	if err != nil {
 		WriteWithResponse(w, http.StatusBadRequest, err.Error())
 		return
@@ -136,8 +141,14 @@ func (u *JobHandler) deleteJob(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if user.UserID.String() != id {
-		WriteWithResponse(w, http.StatusBadRequest, "unable to delete other company job")
+	job, err := u.usecase.GetJobByID(id)
+	if err != nil {
+		WriteWithResponse(w, http.StatusBadRequest, "invalid job id")
+		return
+	}
+
+	if user.Name != job.CompanyName {
+		WriteWithResponse(w, http.StatusBadRequest, "unable to update other company job")
 		return
 	}
 

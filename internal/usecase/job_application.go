@@ -1,6 +1,7 @@
 package usecase
 
 import (
+	"errors"
 	"time"
 
 	"github.com/christianchrisjo/hiring/internal/models"
@@ -8,6 +9,11 @@ import (
 )
 
 func (u *Usecase) CreateJobApplication(req models.CreateJobApplicationRequest) (models.JobApplication, error) {
+	_, err := u.GetJobByID(req.JobID.String())
+	if err != nil {
+		return models.JobApplication{}, errors.New("job not found")
+	}
+
 	jobApplication, err := u.postgres.CreateJobApplication(models.JobApplication{
 		ID:        uuid.New(),
 		JobID:     req.JobID,

@@ -68,14 +68,14 @@ func (u *UserHandler) updateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if claimToken.UserID.String() != updateRequest.UserID.String() {
-		WriteWithResponse(w, http.StatusUnauthorized, "unauthorized")
-		return
-	}
-
 	updateRequest.UserID, err = uuid.Parse(id)
 	if err != nil {
 		WriteWithResponse(w, http.StatusBadRequest, "Invalid user id")
+		return
+	}
+
+	if claimToken.UserID.String() != updateRequest.UserID.String() {
+		WriteWithResponse(w, http.StatusUnauthorized, "unauthorized")
 		return
 	}
 

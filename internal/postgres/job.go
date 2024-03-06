@@ -1,6 +1,7 @@
 package postgres
 
 import (
+	"context"
 	"database/sql"
 
 	"github.com/christianchrisjo/hiring/internal/models"
@@ -77,6 +78,20 @@ func (p *Postgres) UpdateJob(req models.Job) (models.Job, error) {
 
 func (p *Postgres) DeleteJob(id string) error {
 	query := `DELETE FROM jobs WHERE id = $1`
-	_, err := p.db.Exec(query, id)
-	return err
+
+	tx, err := p.db.BeginTx(context.Background(), nil)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	_, err = tx.Exec(query, id)
+	if err != nil {
+		return err
+	}
+	err = deleteJobApplicationByJobID(tx, id)
+	if err != nil {
+		return err
+	}
+	return tx.Commit()
 }

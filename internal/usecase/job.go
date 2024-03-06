@@ -75,6 +75,5 @@ func (u *Usecase) DeleteJob(id string) error {
 	if err != nil {
 		return err
 	}
-
-	return nil
+	return err
 }
