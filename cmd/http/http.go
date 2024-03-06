@@ -14,21 +14,28 @@ import (
 
 func homePage(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintln(w, "Endpoints without bearer token")
-	fmt.Fprintln(w, "[GET] /user/{email} : Get a user by email")
-	fmt.Fprintln(w, "[POST] /user/create : create a new user")
-	fmt.Fprintln(w, "[GET] /job/list : List all jobs")
-	fmt.Fprintln(w, "[GET] /job/{id} : Get a job by id")
+	fmt.Fprintln(w, "[POST] /user : Create a new user")
+	fmt.Fprintln(w, "[POST] /user/signin : Sign in")
+	fmt.Fprintln(w, "[GET] /job/list : Get all jobs list")
+	fmt.Fprintln(w, "[GET] /job/{id} : Get job detail by ID")
+	fmt.Fprintln(w, "")
+
+	fmt.Fprintln(w, "Endpoints with general user bearer token")
+	fmt.Fprintln(w, "[GET] /user/{email} : Get user by email")
+	fmt.Fprintln(w, "[PUT] /user/{id} : Update user by user ID")
+	fmt.Fprintln(w, "[GET] /job/application/{id} : Get user job application detail by job application ID")
+
+	fmt.Fprintln(w, "Endpoints with employer bearer token")
+	fmt.Fprintln(w, "[POST] /job : Create a new job")
+	fmt.Fprintln(w, "[PUT] /job/{id} : Update a job")
+	fmt.Fprintln(w, "[DELETE] /job/{id} : Delete a job by job id")
+	fmt.Fprintln(w, "[GET] /job/application/job/{id} : get all applications by job id")
+	fmt.Fprintln(w, "[PUT] /job/application/{id} : update a job application by id")
 	fmt.Fprintln(w, "")
 
 	fmt.Fprintln(w, "Endpoints with employee bearer token")
-	fmt.Fprintln(w, "[PUT] /user/{id} : create a new user")
-	fmt.Fprintln(w, "")
-
-	// TODO add employer bearer token authentication
-	fmt.Fprintln(w, "Endpoints with employer bearer token")
-	fmt.Fprintln(w, "[POST] /job/create : Create a new job")
-	fmt.Fprintln(w, "[PUT] /job/{id} : update a job by id")
-	fmt.Fprintln(w, "[DELETE] /job/{id} : delete a job by id")
+	fmt.Fprintln(w, "[GET] /job/application/user/{id} : Get all job applications by user id")
+	fmt.Fprintln(w, "[POST] /job/application : Create a new job application")
 }
 
 func HandleRequests(handler *Handlers) {
