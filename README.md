@@ -3,6 +3,9 @@ simple job portal API
 ## How to Run
 go to `./cmd` where `main.go` file exist. simply run `go run main.go`. The app itself will be loaded in `localhost:10000`
 
+## API Documentation
+https://docs.google.com/document/d/1h9_mLZ_xJkqLH5CFkUvtoSawVxuVJ8fBquPITVQ3iBM/edit?usp=sharing
+
 ## Bearer token
 to get the token, we need to have user via `[POST] /user`. After user is created, proceed to sign in using `[POST] /user/signin`. the sign in endpoint will return string. <br>
 This is the bearer token which you will need to attach it in every request metadata `authorization: bearer {token}` <br>
